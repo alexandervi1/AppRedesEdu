@@ -222,14 +222,15 @@ const callOllama = async (messages, options = {}) => {
 };
 
 const isSafeAiChallenge = (content, expectedAnswer) => {
+  if (!content) return false;
   const normalizedContent = normalizeText(content);
-  const answerTokens = normalizeText(expectedAnswer)
-    .split(/\s+/)
-    .filter((token) => token.length > 3);
+  const normalizedAnswer = normalizeText(expectedAnswer);
 
-  if (!content || normalizedContent.includes("modo usuario exec para configurar")) return false;
+  if (normalizedContent.includes("modo usuario exec para configurar")) return false;
   if (normalizedContent.includes("ip static")) return false;
-  if (answerTokens.some((token) => normalizedContent.includes(token))) return false;
+  
+  // Reject only if the prompt leaks the exact, full Cisco command
+  if (normalizedContent.includes(normalizedAnswer)) return false;
   return true;
 };
 
@@ -335,6 +336,99 @@ app.post("/api/ai/next-challenge", async (req, res) => {
 
   const fallback = buildLocalChallenge({ locale, topic, recentAttempts, mode });
 
+  try {
+    // Check if Ollama is active
+    const statusResponse = await fetch(`${ollamaHost}/api/tags`).catch(() => null);
+    if (!statusResponse || !statusResponse.ok) {
+      throw new Error("Ollama is offline");
+    }
+
+    const item = fallback.selectedCommand;
+    if (!item) {
+      throw new Error("No command available to generate AI scenario");
+    }
+
+    const purpose = item.purpose?.[locale] ?? item.purpose?.es ?? "";
+    const commandMode = inferCommandMode(item, topic.mode);
+
+    const challengePrompt = [
+      {
+        role: "system",
+        content: `Eres un generador de retos de redes para Cisco CCNA/CCNP Enterprise en Cisco IOS.
+Debes reescribir un reto de comando técnico en un escenario práctico, realista y didáctico para Packet Tracer.
+Responde ÚNICAMENTE en formato JSON con la siguiente estructura exacta:
+{
+  "prompt": {
+    "es": "Descripción creativa del reto en español...",
+    "en": "Creative description of the challenge in English..."
+  },
+  "hint": {
+    "es": "Pista útil en español...",
+    "en": "Helpful hint in English..."
+  }
+}
+Instrucciones:
+1. La respuesta correcta esperada es EXACTAMENTE: "${fallback.challenge.answer}".
+2. NUNCA menciones la respuesta ("${fallback.challenge.answer}") ni partes de ella en el "prompt" ni en el "hint".
+3. Describe un escenario real, un problema de redes, o una tarea de Packet Tracer que requiera ejecutar este comando.
+4. Responde únicamente con el bloque JSON válido, sin explicaciones ni markdown adicional.`
+      },
+      {
+        role: "user",
+        content: `Genera el reto para el tema "${topic.title.es}" (${topic.title.en}).
+El comando a practicar tiene el propósito de: "${purpose}".
+Debe ejecutarse en el modo: "${commandMode}".`
+      }
+    ];
+
+    const contentText = await callOllama(challengePrompt, { temperature: 0.5 });
+    
+    // Parse the JSON robustly
+    let parsedChallenge;
+    try {
+      parsedChallenge = JSON.parse(contentText);
+    } catch {
+      const match = contentText.match(/```json\s*([\s\S]*?)\s*```/) || contentText.match(/```\s*([\s\S]*?)\s*```/);
+      if (match) {
+        parsedChallenge = JSON.parse(match[1].trim());
+      } else {
+        const first = contentText.indexOf("{");
+        const last = contentText.lastIndexOf("}");
+        if (first !== -1 && last !== -1) {
+          parsedChallenge = JSON.parse(contentText.slice(first, last + 1));
+        } else {
+          throw new Error("No JSON structure found in Ollama response");
+        }
+      }
+    }
+
+    // Validate the generated prompt
+    const promptText = parsedChallenge.prompt?.[locale] ?? parsedChallenge.prompt?.es ?? "";
+    if (isSafeAiChallenge(promptText, fallback.challenge.answer)) {
+      const challenge = {
+        prompt: {
+          es: parsedChallenge.prompt?.es ?? fallback.challenge.prompt.es,
+          en: parsedChallenge.prompt?.en ?? fallback.challenge.prompt.en,
+        },
+        answer: fallback.challenge.answer,
+        hint: {
+          es: parsedChallenge.hint?.es ?? fallback.challenge.hint.es,
+          en: parsedChallenge.hint?.en ?? fallback.challenge.hint.en,
+        },
+      };
+
+      return res.json({
+        challenge,
+        content: locale === "en" ? `Challenge:\n${challenge.prompt.en}\n\nHint:\n${challenge.hint.en}` : `Reto:\n${challenge.prompt.es}\n\nPista:\n${challenge.hint.es}`,
+        model: ollamaModel,
+        source: "ai",
+      });
+    }
+  } catch (error) {
+    console.warn("AI Challenge generation failed, falling back to local:", error.message);
+  }
+
+  // Graceful fallback to deterministic local generator
   return res.json({
     challenge: fallback.challenge,
     content: fallback.content,
