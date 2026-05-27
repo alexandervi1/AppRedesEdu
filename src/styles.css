@@ -1046,6 +1046,7 @@ button:disabled {
 .knowledge-panel {
   display: grid;
   gap: 20px;
+  align-content: start; /* Prevents grid rows from stretching vertically */
 }
 
 .knowledge-heading {
@@ -1087,6 +1088,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center; /* Prevents flex items from stretching vertically */
 }
 
 .tech-badge {
