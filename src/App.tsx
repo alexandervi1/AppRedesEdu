@@ -1292,9 +1292,44 @@ function CommandTrainer({
   const [currentChallenge, setCurrentChallenge] = useState<TutorChallenge>(visibleTopics[0].challenge);
   const [aiLoading, setAiLoading] = useState(false);
   const activeTopic = visibleTopics.find((topic) => topic.id === activeTopicId) ?? visibleTopics[0];
-  const normalizedAnswer = answer.trim().replace(/\s+/g, " ").toLowerCase();
+  // Helper to parse prompt and command
+  const parseStudentInput = (input: string) => {
+    const trimmed = input.trim().replace(/\s+/g, " ");
+    const match = trimmed.match(/^([a-zA-Z0-9\-_]+(?:\([^)]+\))?[>#])\s+(.+)$/);
+    if (match) {
+      return {
+        prompt: match[1],
+        command: match[2].toLowerCase(),
+        rawCommand: match[2]
+      };
+    }
+    return {
+      prompt: "",
+      command: trimmed.toLowerCase(),
+      rawCommand: trimmed
+    };
+  };
+
+  const getModeSuffix = (prompt: string) => {
+    return prompt.replace(/^[a-zA-Z0-9\-_]+/, "").toLowerCase();
+  };
+
+  const parsedInput = parseStudentInput(answer);
+  const normalizedAnswer = parsedInput.command;
   const expectedAnswer = currentChallenge.answer.trim().replace(/\s+/g, " ").toLowerCase();
-  const isCorrect = normalizedAnswer === expectedAnswer;
+
+  const expectedCommandItem = activeTopic.commands.find(
+    (item) => item.command.trim().toLowerCase() === expectedAnswer
+  );
+  const example = expectedCommandItem?.example ?? "";
+  const exampleMatch = example.trim().replace(/\s+/g, " ").match(/^([a-zA-Z0-9\-_]+(?:\([^)]+\))?[>#])\s+(.+)$/);
+  const expectedPrompt = exampleMatch ? exampleMatch[1] : "";
+  const expectedSuffix = expectedPrompt ? getModeSuffix(expectedPrompt) : "";
+  const studentSuffix = getModeSuffix(parsedInput.prompt);
+
+  const isCommandCorrect = normalizedAnswer === expectedAnswer;
+  const isPromptCorrect = parsedInput.prompt !== "" && (expectedSuffix === "" || studentSuffix === expectedSuffix);
+  const isCorrect = isCommandCorrect && isPromptCorrect;
   const challengeId = `${activeTopic.id}:${practiceMode}`;
   const attemptStats = progress.commandAttempts[challengeId];
   const aiReady = Boolean(aiStatus?.available && aiStatus.modelInstalled);
@@ -1353,16 +1388,37 @@ function CommandTrainer({
     const expectedCommand = activeTopic.commands.find(
       (item) => item.command.trim().toLowerCase() === expectedAnswer,
     );
-    const studentCommand = activeTopic.commands.find(
-      (item) => item.command.trim().toLowerCase() === normalizedAnswer,
-    );
     const expectedPurpose = expectedCommand?.purpose[locale] ?? currentChallenge.prompt[locale];
 
-    if (correct) {
+    const parsedInput = parseStudentInput(answer);
+    const isCommandCorrect = parsedInput.command === expectedAnswer;
+    const studentSuffix = getModeSuffix(parsedInput.prompt);
+    const expectedSuffix = expectedPrompt ? getModeSuffix(expectedPrompt) : "";
+    const isPromptCorrect = parsedInput.prompt !== "" && (expectedSuffix === "" || studentSuffix === expectedSuffix);
+
+    if (isCommandCorrect && isPromptCorrect) {
       return locale === "es"
-        ? `Diagnóstico: correcto. Explicación corta: el comando cumple el objetivo: ${expectedPurpose} Siguiente pregunta: ¿en qué modo CLI lo ejecutarías y qué comando show usarías para verificarlo?`
-        : `Diagnosis: correct. Short explanation: the command matches the objective: ${expectedPurpose} Next question: which CLI mode would you run it from and which show command would verify it?`;
+        ? `Diagnóstico: ¡Excelente! Comando y modo correctos. Explicación corta: ejecutaste "${parsedInput.rawCommand}" en el modo adecuado (${parsedInput.prompt}) para: ${expectedPurpose}.`
+        : `Diagnosis: Excellent! Correct command and mode. Short explanation: you executed "${parsedInput.rawCommand}" in the proper mode (${parsedInput.prompt}) for: ${expectedPurpose}.`;
     }
+
+    if (isCommandCorrect && parsedInput.prompt === "") {
+      const promptExample = expectedPrompt || "Router#";
+      return locale === "es"
+        ? `Diagnóstico: comando correcto, pero falta el prompt. Explicación corta: debes indicar el modo CLI escribiendo el prompt al inicio (por ejemplo: "${promptExample} ${currentChallenge.answer}"). Pista: ${currentChallenge.hint.es}`
+        : `Diagnosis: correct command, but prompt is missing. Short explanation: you must indicate the CLI mode by writing the prompt at the start (for example: "${promptExample} ${currentChallenge.answer}"). Hint: ${currentChallenge.hint.en}`;
+    }
+
+    if (isCommandCorrect && !isPromptCorrect) {
+      const promptExample = expectedPrompt || "Router#";
+      return locale === "es"
+        ? `Diagnóstico: modo de ejecución incorrecto. Explicación corta: ingresaste el comando en el modo "${parsedInput.prompt}" (${studentSuffix}), pero este comando debe ejecutarse en el modo con el prompt "${promptExample}" (${expectedSuffix}). Pista: ${currentChallenge.hint.es}`
+        : `Diagnosis: incorrect execution mode. Short explanation: you entered the command in mode "${parsedInput.prompt}" (${studentSuffix}), but this command must be run in the mode with the prompt "${promptExample}" (${expectedSuffix}). Hint: ${currentChallenge.hint.en}`;
+    }
+
+    const studentCommand = activeTopic.commands.find(
+      (item) => item.command.trim().toLowerCase() === parsedInput.command,
+    );
 
     if (studentCommand) {
       return locale === "es"
@@ -1370,10 +1426,10 @@ function CommandTrainer({
         : `Diagnosis: valid command, but not for this challenge. Short explanation: "${studentCommand.command}" is used to ${studentCommand.purpose.en.toLowerCase()} Here the objective is: ${expectedPurpose} Hint: ${currentChallenge.hint.en}`;
     }
 
-    if (normalizedAnswer.startsWith("interface ") && expectedAnswer === "no shutdown") {
+    if (parsedInput.command.startsWith("interface ") && expectedAnswer === "no shutdown") {
       return locale === "es"
         ? `Diagnóstico: cambiaste de contexto, pero no activaste la interfaz. Explicación corta: "interface ..." entra al modo de interfaz; para levantarla se usa el comando esperado dentro de ese modo. Pista: ${currentChallenge.hint.es}`
-        : `Diagnosis: you changed context, but did not enable the interface. Short explanation: "interface ..." enters interface configuration; the expected command enables it from that mode. Hint: ${currentChallenge.hint.en}`;
+        : `Diagnosis: you changed context, but did not enable the interface. Short explanation: "interface configuration" enters interface configuration; the expected command enables it from that mode. Hint: ${currentChallenge.hint.en}`;
     }
 
     return locale === "es"
@@ -1563,7 +1619,7 @@ function CommandTrainer({
               <span>{t.yourCommand}</span>
               <input
                 value={answer}
-                placeholder={locale === "es" ? "Escribe tu respuesta exacta" : "Type your exact answer"}
+                placeholder={locale === "es" ? "Escribe el prompt y comando (ej: Router# show ...)" : "Type prompt and command (e.g. Router# show ...)"}
                 onChange={(event) => {
                   setAnswer(event.target.value);
                   setSubmitted(false);

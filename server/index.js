@@ -76,6 +76,21 @@ const inferCommandMode = (item, fallbackMode = "Contexto no especificado") => {
   return fallbackMode;
 };
 
+const parseStudentInput = (input) => {
+  const trimmed = String(input ?? "").trim().replace(/\s+/g, " ");
+  const match = trimmed.match(/^([a-zA-Z0-9\-_]+(?:\([^)]+\))?[>#])\s+(.+)$/);
+  if (match) {
+    return {
+      prompt: match[1],
+      command: match[2],
+    };
+  }
+  return {
+    prompt: "",
+    command: trimmed,
+  };
+};
+
 const findCommand = (topic, command) => {
   const expected = String(command ?? "").trim().toLowerCase();
   const commands = Array.isArray(topic?.commands) ? topic.commands : [];
@@ -279,11 +294,14 @@ app.post("/api/ai/tutor", async (req, res) => {
   }
 
   try {
-    const expectedCommand = findCommand(topic, challenge.answer);
+    const parsedStudent = parseStudentInput(studentAnswer);
+    const parsedChallenge = parseStudentInput(challenge.answer);
+
+    const expectedCommand = findCommand(topic, parsedChallenge.command);
     const expectedMode = inferCommandMode(expectedCommand, topic.mode);
-    const studentCommand = findCommand(topic, studentAnswer);
+    const studentCommand = findCommand(topic, parsedStudent.command);
     const studentMode = studentCommand ? inferCommandMode(studentCommand, topic.mode) : "desconocido o fuera del listado validado";
-    const relevantKnowledge = getRelevantKnowledge(topic, [challenge.answer, studentAnswer]);
+    const relevantKnowledge = getRelevantKnowledge(topic, [parsedChallenge.command, parsedStudent.command]);
 
     const content = await callOllama([
       { role: "system", content: systemPrompt },
