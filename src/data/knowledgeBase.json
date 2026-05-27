@@ -1,0 +1,380 @@
+{
+  "version": "2026-05-27",
+  "sourceFolder": "C:\\Users\\ALEXANDER VILLALVA\\Desktop\\ESPOCH\\Redes\\Materia_Redes",
+  "sources": [
+    { "id": "escenario-campus", "file": "Escenario electronica.pdf", "pages": 4, "topic": "Campus, VLAN, DHCP, VoIP y troubleshooting" },
+    { "id": "fundamentos-redes-2", "file": "Fundamentos Generales nivelacion Redes 2.pdf", "pages": 86, "topic": "Fundamentos, OSI/TCP-IP, switching, IPv4, IPv6 y routing" },
+    { "id": "ipv6-addressing", "file": "IPv6 Addressing.pdf", "pages": 100, "topic": "Direccionamiento IPv6, transicion e ICMPv6" },
+    { "id": "routing-fundamentals", "file": "Routing Protocols Fundamentals new.pdf", "pages": 46, "topic": "Fundamentos de routing, IPv6 y rutas estaticas" },
+    { "id": "routing-protocols", "file": "Routing Protocols.pdf", "pages": 58, "topic": "RIPng, EIGRP IPv6, OSPFv3 y verificacion" },
+    { "id": "vlan-stp-etherchannel-voip", "file": "VLAN-SpanningTreeProtocol - Etherchannel - VoIP.pdf", "pages": 67, "topic": "VLAN, trunk, STP, EtherChannel, VoIP y DHCPv6" },
+    { "id": "wlan", "file": "WLAN.pdf", "pages": 17, "topic": "WLAN, 802.11, asociacion, CAPWAP y seguridad" },
+    { "id": "ccnp-enterprise-local", "file": "Contenido local CCNP Enterprise ENCOR + ENARSI", "pages": 1, "topic": "Blueprint local, labs guiados y comandos avanzados CCNP Enterprise" }
+  ],
+  "entries": [
+    {
+      "id": "network-foundations",
+      "title": "Fundamentos de redes y modelos",
+      "tags": ["fundamentos", "osi", "tcpip", "ethernet", "switch", "router", "medio", "protocolo"],
+      "sourceRefs": [
+        { "sourceId": "fundamentos-redes-2", "pages": [4, 18, 20, 22, 26, 30] }
+      ],
+      "summary": "Una red combina dispositivos finales, dispositivos intermediarios, medios cableados o inalambricos, servicios y protocolos. Los modelos OSI y TCP/IP permiten diagnosticar por capas y ubicar funciones como acceso al medio, direccionamiento IP, transporte y aplicaciones.",
+      "facts": [
+        "Los dispositivos intermediarios incluyen switches, routers, puntos de acceso y firewalls.",
+        "Los medios de red pueden transportar senales electricas, pulsos de luz o radiofrecuencia.",
+        "IEEE define estandares como 802.3 para Ethernet y 802.11 para WLAN; IETF publica RFCs para protocolos de Internet.",
+        "La solucion de fallas debe avanzar por capas: fisica, enlace, red, transporte y aplicacion."
+      ],
+      "commands": ["show interfaces", "show ip interface brief", "ping", "traceroute"]
+    },
+    {
+      "id": "ipv6-addressing-core",
+      "title": "Direccionamiento IPv6",
+      "tags": ["ipv6", "gua", "link-local", "multicast", "slaac", "dhcpv6", "icmpv6", "prefix", "eui-64"],
+      "sourceRefs": [
+        { "sourceId": "ipv6-addressing", "pages": [20, 34, 54, 55, 56, 59, 66, 67, 76, 77] },
+        { "sourceId": "fundamentos-redes-2", "pages": [69, 70, 75, 76, 79] },
+        { "sourceId": "routing-fundamentals", "pages": [2, 4, 5, 6, 7, 10, 11, 14] }
+      ],
+      "summary": "IPv6 usa 128 bits en ocho hextetos, prefijos en lugar de mascaras decimales y no usa broadcast. Las interfaces pueden tener varias direcciones: global unicast, link-local y multicast. La link-local FE80::/10 se usa en el enlace local y como next-hop en varios procesos de routing.",
+      "facts": [
+        "Una direccion global unicast suele dividirse en global routing prefix, subnet ID e interface ID.",
+        "El prefijo /64 es el tamano comun para una LAN IPv6.",
+        "IPv6 reemplaza TTL con Hop Limit y usa Next Header para indicar TCP, UDP, ICMPv6, EIGRP u OSPF.",
+        "Los routers IPv6 no fragmentan paquetes; si el MTU no alcanza, ICMPv6 Packet Too Big informa el problema.",
+        "Dual stack permite ejecutar IPv4 e IPv6 en paralelo durante una migracion gradual.",
+        "No hay broadcast en IPv6; se usan multicast y neighbor discovery."
+      ],
+      "commands": ["ipv6 unicast-routing", "ipv6 address 2001:db8:1::1/64", "ipv6 address fe80::1 link-local", "show ipv6 interface brief", "show ipv6 route"]
+    },
+    {
+      "id": "routing-static-dynamic",
+      "title": "Routing estatico y dinamico",
+      "tags": ["routing", "ruta estatica", "default route", "rip", "eigrp", "ospf", "metric", "next-hop"],
+      "sourceRefs": [
+        { "sourceId": "fundamentos-redes-2", "pages": [80] },
+        { "sourceId": "routing-fundamentals", "pages": [20, 35, 36, 46] },
+        { "sourceId": "routing-protocols", "pages": [5, 11, 17] }
+      ],
+      "summary": "El routing permite seleccionar el mejor camino entre redes. Las rutas estaticas son manuales y no se actualizan ante cambios; los protocolos dinamicos aprenden redes remotas automaticamente. Una ruta predeterminada usa 0.0.0.0/0 en IPv4 o ::/0 en IPv6 cuando no existe una ruta mas especifica.",
+      "facts": [
+        "RIP usa conteo de saltos como metrica.",
+        "EIGRP considera ancho de banda, retardo, confiabilidad y carga.",
+        "OSPF calcula costo normalmente asociado al ancho de banda.",
+        "Las rutas estaticas son utiles en redes pequenas, enlaces puntuales y rutas predeterminadas.",
+        "El next-hop indica el router siguiente hacia una red destino."
+      ],
+      "commands": ["ip route 0.0.0.0 0.0.0.0 10.0.0.1", "ipv6 route ::/0 2001:db8:1::2", "show ip route", "show ipv6 route"]
+    },
+    {
+      "id": "ipv6-routing-protocols",
+      "title": "Protocolos de routing IPv6",
+      "tags": ["ripng", "eigrp ipv6", "ospfv3", "router-id", "passive-interface", "ipv6 routing"],
+      "sourceRefs": [
+        { "sourceId": "routing-protocols", "pages": [20, 35, 40, 49, 51, 52, 55, 56, 58] }
+      ],
+      "summary": "Para enrutar IPv6 en Cisco IOS se debe habilitar ipv6 unicast-routing. RIPng, EIGRP para IPv6 y OSPFv3 se activan con comandos especificos y suelen requerir router-id para funcionar correctamente cuando no hay IPv4 utilizable.",
+      "facts": [
+        "OSPFv3 anuncia rutas IPv6 y usa direcciones link-local como origen de mensajes.",
+        "OSPFv3 usa FF02::5 para todos los routers OSPF y FF02::6 para DR/BDR.",
+        "El comando passive-interface evita enviar actualizaciones por una interfaz, pero la red puede seguir anunciandose.",
+        "EIGRP para IPv6 requiere proceso, router-id y no shutdown dentro del modo de routing.",
+        "RIPng se puede activar en interfaces con ipv6 rip nombre enable."
+      ],
+      "commands": ["ipv6 router rip RIP-AS", "ipv6 rip RIP-AS enable", "ipv6 router eigrp 100", "eigrp router-id 1.1.1.1", "ipv6 router ospf 1", "router-id 2.2.2.2", "ipv6 ospf 1 area 0", "passive-interface g0/0"]
+    },
+    {
+      "id": "vlans-trunks-intervlan",
+      "title": "VLAN, trunks e inter-VLAN routing",
+      "tags": ["vlan", "trunk", "802.1q", "native vlan", "management vlan", "router-on-a-stick", "svi"],
+      "sourceRefs": [
+        { "sourceId": "vlan-stp-etherchannel-voip", "pages": [3, 4, 5, 7, 10, 13, 14, 19] },
+        { "sourceId": "escenario-campus", "pages": [1, 2] }
+      ],
+      "summary": "Las VLAN separan dominios de broadcast y agrupan usuarios o servicios con requisitos similares. Un enlace trunk transporta varias VLAN mediante 802.1Q; la VLAN nativa no se etiqueta y debe configurarse con cuidado. El routing entre VLAN puede hacerse con router-on-a-stick usando subinterfaces o con un switch multicapa.",
+      "facts": [
+        "VLAN 1 es la VLAN predeterminada, nativa y de administracion por defecto, pero se recomienda mover esas funciones a otras VLAN.",
+        "Los trunks son enlaces de capa 2 que transportan trafico de multiples VLAN.",
+        "Un trunk puede limitar VLANs permitidas y definir una VLAN nativa distinta de 1.",
+        "Router-on-a-stick divide una interfaz fisica del router en subinterfaces con encapsulation dot1Q.",
+        "Una VLAN de administracion normalmente usa una SVI para acceso SSH o Telnet."
+      ],
+      "commands": ["vlan 10", "switchport mode access", "switchport access vlan 10", "switchport mode trunk", "switchport trunk native vlan 99", "switchport trunk allowed vlan 10,20,30,99", "encapsulation dot1Q 10"]
+    },
+    {
+      "id": "ccna2-switching-concepts",
+      "title": "Conmutacion y administracion de switch",
+      "tags": ["ccna2", "switching", "mac address-table", "cam", "svi", "duplex", "ip default-gateway", "ssh"],
+      "sourceRefs": [
+        { "sourceId": "fundamentos-redes-2", "pages": [18, 20, 22, 30] }
+      ],
+      "summary": "Un switch aprende direcciones MAC origen por puerto, reenvia unicast conocidos, inunda unicast desconocidos y broadcasts dentro de la VLAN, y separa dominios de colision por puerto. La administracion de un switch capa 2 usa una SVI con IP, gateway predeterminado y acceso seguro.",
+      "facts": [
+        "La tabla MAC asocia VLAN, direccion MAC y puerto de salida.",
+        "Unicast desconocido y broadcast se inundan dentro de la VLAN correspondiente.",
+        "Una SVI permite administrar el switch por IP; ip default-gateway permite responder a redes remotas.",
+        "Problemas de duplex o velocidad pueden causar errores, colisiones tardias o bajo rendimiento."
+      ],
+      "commands": ["show mac address-table", "clear mac address-table dynamic", "interface vlan 99", "ip default-gateway 192.168.99.1", "show interfaces status"]
+    },
+    {
+      "id": "stp-etherchannel",
+      "title": "STP y EtherChannel",
+      "tags": ["stp", "spanning-tree", "portfast", "bpduguard", "etherchannel", "lacp", "pagp", "port-channel"],
+      "sourceRefs": [
+        { "sourceId": "vlan-stp-etherchannel-voip", "pages": [40, 43] }
+      ],
+      "summary": "STP evita bucles de capa 2 bloqueando enlaces redundantes. EtherChannel agrupa varios enlaces fisicos Ethernet en un enlace logico para tolerancia a fallas, balanceo de carga, mayor ancho de banda y redundancia sin que STP bloquee cada enlace individual.",
+      "facts": [
+        "PortFast acelera la transicion de puertos finales, pero no debe usarse hacia switches.",
+        "BPDU Guard protege puertos de acceso apagandolos si reciben BPDUs.",
+        "LACP usa modos active/passive y crea un Port-channel logico.",
+        "La configuracion del Port-channel debe ser consistente en VLAN, trunking, velocidad y duplex."
+      ],
+      "commands": ["spanning-tree mode rapid-pvst", "spanning-tree portfast", "spanning-tree bpduguard enable", "channel-group 1 mode active", "interface port-channel 1", "show etherchannel summary", "show spanning-tree"]
+    },
+    {
+      "id": "ccna2-lan-security",
+      "title": "Seguridad LAN y del switch",
+      "tags": ["ccna2", "lan security", "port-security", "dhcp snooping", "dynamic arp inspection", "dai", "vlan hopping", "mac flooding", "bpduguard"],
+      "sourceRefs": [
+        { "sourceId": "vlan-stp-etherchannel-voip", "pages": [40, 43] }
+      ],
+      "summary": "La seguridad LAN de CCNA 2 se enfoca en reducir ataques de capa 2 como MAC flooding, VLAN hopping, DHCP spoofing, ARP spoofing y manipulacion STP. Las defensas practicas incluyen deshabilitar puertos no usados, definir access/trunk explicitamente, port-security, DHCP snooping, Dynamic ARP Inspection, PortFast y BPDU Guard.",
+      "facts": [
+        "Port-security limita las MAC permitidas en un puerto access y puede usar aprendizaje sticky.",
+        "DHCP snooping bloquea ofertas DHCP desde puertos no confiables y crea una base de asociaciones IP-MAC.",
+        "Dynamic ARP Inspection usa asociaciones validas para filtrar respuestas ARP falsificadas.",
+        "BPDU Guard apaga un puerto access si recibe BPDUs inesperadas."
+      ],
+      "commands": ["switchport port-security", "switchport port-security mac-address sticky", "ip dhcp snooping", "ip dhcp snooping vlan 10", "ip dhcp snooping trust", "ip arp inspection vlan 10", "show ip dhcp snooping binding", "show ip arp inspection"]
+    },
+    {
+      "id": "ccna2-fhrp",
+      "title": "FHRP y gateways redundantes",
+      "tags": ["ccna2", "fhrp", "hsrp", "vrrp", "glbp", "gateway virtual", "standby", "preempt", "priority"],
+      "sourceRefs": [
+        { "sourceId": "routing-fundamentals", "pages": [20, 35, 36, 46] }
+      ],
+      "summary": "Los protocolos FHRP permiten que dos o mas routers o switches multicapa presenten una IP/MAC virtual como gateway predeterminado. HSRP usa roles active y standby; prioridad, preempt y tracking controlan la eleccion y recuperacion del gateway activo.",
+      "facts": [
+        "Los hosts configuran la IP virtual como gateway, no la IP fisica de cada router.",
+        "HSRP selecciona active y standby por prioridad y direccion IP como desempate.",
+        "preempt permite que el dispositivo con mayor prioridad retome el rol activo al recuperarse.",
+        "show standby brief resume grupo, estado, prioridad, active, standby e IP virtual."
+      ],
+      "commands": ["standby 10 ip 192.168.10.1", "standby 10 priority 110", "standby 10 preempt", "standby 10 track g0/1", "show standby", "show standby brief"]
+    },
+    {
+      "id": "ccna2-static-route-troubleshooting",
+      "title": "Rutas estaticas y troubleshooting",
+      "tags": ["ccna2", "static route", "default route", "floating static", "administrative distance", "ipv6 route", "troubleshooting", "return route"],
+      "sourceRefs": [
+        { "sourceId": "routing-fundamentals", "pages": [20, 35, 36, 46] }
+      ],
+      "summary": "Las rutas estaticas pueden usar next-hop, interfaz de salida o ambos. Las rutas flotantes tienen una distancia administrativa mayor para servir como respaldo. El troubleshooting revisa estado de interfaces, coincidencia de prefijo, next-hop alcanzable, ruta de retorno y tabla IPv4/IPv6.",
+      "facts": [
+        "Una ruta default IPv4 usa 0.0.0.0 0.0.0.0; una ruta default IPv6 usa ::/0.",
+        "Una ruta flotante solo se instala cuando no existe una ruta con menor distancia administrativa.",
+        "La ruta de retorno es obligatoria para que ping y aplicaciones funcionen en ambos sentidos.",
+        "show ip route static, show ipv6 route static, ping y traceroute ayudan a aislar fallas."
+      ],
+      "commands": ["ip route 0.0.0.0 0.0.0.0 10.0.0.1 5", "ip route 192.168.20.10 255.255.255.255 10.0.0.2", "ipv6 route ::/0 2001:db8:12::2", "show ip route static", "show ipv6 route static", "traceroute"]
+    },
+    {
+      "id": "dhcp-dhcpv6",
+      "title": "DHCP, DHCPv6 y servicios",
+      "tags": ["dhcp", "dhcpv6", "slaac", "dns", "default-router", "pool", "stateless"],
+      "sourceRefs": [
+        { "sourceId": "escenario-campus", "pages": [3] },
+        { "sourceId": "vlan-stp-etherchannel-voip", "pages": [66, 67] }
+      ],
+      "summary": "DHCP asigna parametros IPv4 como direccion, mascara, gateway y DNS. DHCPv6 stateless combina Router Advertisements para direccionamiento con DHCPv6 para opciones adicionales como DNS y dominio.",
+      "facts": [
+        "En IPv4, ip dhcp pool crea el pool y network define la red entregada.",
+        "default-router indica el gateway que recibiran los clientes DHCP IPv4.",
+        "Para DHCPv6 stateless se habilita ipv6 unicast-routing, se crea ipv6 dhcp pool y se asocia a la interfaz.",
+        "ipv6 nd other-config-flag indica a los hosts que obtengan informacion adicional desde DHCPv6."
+      ],
+      "commands": ["ip dhcp pool LAN", "network 192.168.1.0 255.255.255.0", "default-router 192.168.1.1", "dns-server 8.8.8.8", "ipv6 dhcp pool LANV6", "dns-server 2001:4860:4860::8888", "ipv6 nd other-config-flag", "ipv6 dhcp server LANV6"]
+    },
+    {
+      "id": "voip-cme-campus",
+      "title": "VoIP con Call Manager Express",
+      "tags": ["voip", "cme", "telephony-service", "ephone", "dial-number", "vlan voz", "call manager"],
+      "sourceRefs": [
+        { "sourceId": "escenario-campus", "pages": [1, 3, 4] }
+      ],
+      "summary": "El escenario de campus integra VLAN de voz, DHCP y Call Manager Express para telefonos IP. El router entrega direccionamiento a telefonos y define el servicio de telefonia, extensiones y telefonos asociados por MAC.",
+      "facts": [
+        "La VLAN de voz separa trafico de telefonia del trafico de datos.",
+        "El pool DHCP de voz debe entregar gateway y opcion 150 apuntando al servidor TFTP/CME.",
+        "telephony-service habilita parametros globales de CME como max-ephones y max-dn.",
+        "ephone-dn define numeros de extension; ephone asocia telefonos por MAC y botones."
+      ],
+      "commands": ["ip dhcp pool VOIP", "option 150 ip 192.168.1.1", "telephony-service", "max-ephones 5", "max-dn 5", "ip source-address 192.168.1.1 port 2000", "ephone-dn 1", "number 1001", "ephone 1", "mac-address 0001.01DA.45F1", "button 1:1"]
+    },
+    {
+      "id": "wlan-wireless",
+      "title": "WLAN, CAPWAP y seguridad inalambrica",
+      "tags": ["wlan", "wireless", "wifi", "802.11", "csma/ca", "ssid", "wpa2", "wpa3", "capwap", "wlc", "ap"],
+      "sourceRefs": [
+        { "sourceId": "wlan", "pages": [3, 4, 5, 6, 9, 11, 12, 13, 14, 16, 17] }
+      ],
+      "summary": "Las WLAN usan 802.11 y CSMA/CA porque el cliente no puede detectar colisiones mientras transmite. Para asociarse, un cliente descubre un AP, se autentica y se asocia con parametros compatibles como SSID, contrasena, modo de red y seguridad.",
+      "facts": [
+        "En 2.4 GHz se recomiendan canales no solapados 1, 6 y 11 para multiples AP.",
+        "Infraestructura usa AP; ad hoc conecta clientes directamente sin AP.",
+        "CAPWAP permite a un WLC administrar multiples AP y WLANs usando UDP 5246 y 5247.",
+        "Open authentication no usa contrasena; WPA2/WPA3 con clave compartida o metodos empresariales protege mejor la red.",
+        "WEP no se recomienda y no debe usarse."
+      ],
+      "commands": ["SSID", "WPA2-PSK", "WPA3", "CAPWAP", "show ip interface brief", "capwap ap controller ip address 192.168.10.5"]
+    },
+    {
+      "id": "ccnp-enterprise-architecture",
+      "title": "CCNP ENCOR: arquitectura enterprise",
+      "tags": ["ccnp", "encor", "architecture", "campus", "fhrp", "high availability", "core", "distribution"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "La arquitectura enterprise separa acceso, distribucion, core, borde y servicios. El objetivo es resiliencia, dominios de falla pequenos, gateways redundantes y rutas resumibles.",
+      "facts": ["El diseno jerarquico facilita escalamiento y troubleshooting.", "FHRP protege el gateway de usuarios.", "EtherChannel y enlaces redundantes reducen puntos unicos de falla.", "La frontera L2/L3 debe elegirse segun convergencia y dominios STP."],
+      "commands": ["show standby brief", "show etherchannel summary", "show spanning-tree root", "show ip route"]
+    },
+    {
+      "id": "ccnp-advanced-switching",
+      "title": "CCNP ENCOR: switching avanzado",
+      "tags": ["ccnp", "encor", "switching", "stp", "mst", "lacp", "etherchannel", "svi"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "Switching avanzado combina Rapid PVST/MST, root bridge planificado, PortFast/BPDU Guard, trunks consistentes, EtherChannel LACP y SVIs de switches multicapa.",
+      "facts": ["Los miembros de un Port-channel deben coincidir en modo, VLANs y trunking.", "El root bridge debe ser intencional por VLAN o instancia.", "PortFast y BPDU Guard son para puertos finales.", "Las SVIs enrutan entre VLANs cuando ip routing esta activo."],
+      "commands": ["spanning-tree mode rapid-pvst", "spanning-tree vlan 10 root primary", "channel-group 1 mode active", "show etherchannel summary", "show spanning-tree"]
+    },
+    {
+      "id": "ccnp-enterprise-routing",
+      "title": "CCNP ENCOR: routing enterprise",
+      "tags": ["ccnp", "encor", "routing", "ospf", "eigrp", "dual-stack", "summarization"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "Routing enterprise cubre vecinos estables, metricas, passive-interface, propagacion de default, sumarizacion y verificacion IPv4/IPv6 en dominios OSPF/EIGRP.",
+      "facts": ["La sumarizacion reduce tablas y limita cambios de topologia.", "OSPF requiere areas coherentes y parametros de hello/dead compatibles.", "EIGRP named mode agrupa address-families y parametros por interfaz.", "La ruta de retorno sigue siendo obligatoria."],
+      "commands": ["router ospf 10", "area 10 range 10.10.0.0 255.255.0.0", "default-information originate", "show ip ospf neighbor", "show ip route ospf"]
+    },
+    {
+      "id": "ccnp-wireless-enterprise",
+      "title": "CCNP ENCOR: wireless enterprise",
+      "tags": ["ccnp", "encor", "wireless", "wlc", "capwap", "roaming", "802.1x", "radius"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "Wireless enterprise usa APs lightweight, WLC, CAPWAP, WLANs, seguridad empresarial, roaming y diagnostico de asociacion, autenticacion, DHCP y conectividad.",
+      "facts": ["CAPWAP separa control y datos entre AP y WLC.", "Un cliente puede ver SSID y fallar por seguridad o RADIUS.", "Roaming depende de cobertura, potencia, canales y politica WLAN.", "DHCP/VLAN incorrectos se manifiestan despues de asociar."],
+      "commands": ["show ap summary", "show wlan summary", "show client summary", "show client detail"]
+    },
+    {
+      "id": "ccnp-virtualization",
+      "title": "CCNP ENCOR: virtualizacion, VRF y overlays",
+      "tags": ["ccnp", "encor", "virtualization", "vrf", "vrf-lite", "gre", "overlay", "underlay"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "La virtualizacion de red separa tablas de routing con VRF-lite y construye overlays sobre un underlay alcanzable mediante tuneles o fabric controlada.",
+      "facts": ["VRF-lite permite prefijos solapados en tablas independientes.", "Asignar ip vrf forwarding a una interfaz puede borrar su IP.", "Un overlay depende de reachability underlay.", "El troubleshooting debe distinguir tabla global de tabla VRF."],
+      "commands": ["ip vrf FIN", "ip vrf forwarding FIN", "ip route vrf FIN 10.10.10.0 255.255.255.0 172.16.10.2", "show ip vrf", "show ip route vrf FIN"]
+    },
+    {
+      "id": "ccnp-assurance-monitoring",
+      "title": "CCNP ENCOR: assurance y monitoreo",
+      "tags": ["ccnp", "encor", "assurance", "snmp", "syslog", "netflow", "ip sla", "ntp"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "Assurance usa logs, flujos, metricas, tiempo sincronizado y pruebas activas para observar sintomas, medir impacto y confirmar reparaciones.",
+      "facts": ["NTP hace utiles las marcas de tiempo de syslog.", "NetFlow identifica conversaciones y volumen.", "IP SLA mide reachability, latencia o jitter.", "Object tracking permite condicionar rutas o politicas."],
+      "commands": ["ntp server 192.0.2.10", "logging host 192.0.2.10", "ip sla 10", "track 10 ip sla 10 reachability", "show ip sla statistics"]
+    },
+    {
+      "id": "ccnp-infrastructure-security",
+      "title": "CCNP ENCOR: seguridad de infraestructura",
+      "tags": ["ccnp", "encor", "security", "aaa", "ssh", "acl", "control-plane", "tacacs"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "La seguridad de infraestructura protege plano de gestion y acceso: AAA, SSH, ACLs de administracion, usuarios locales o externos y endurecimiento del dispositivo.",
+      "facts": ["AAA new-model cambia el comportamiento de autenticacion.", "Debe existir un metodo local o servidor disponible para evitar bloqueo.", "Las lineas VTY deben limitar origen y transporte.", "CoPP protege el plano de control a nivel conceptual."],
+      "commands": ["aaa new-model", "username admin privilege 15 secret class", "ip ssh version 2", "access-class 10 in", "show ip ssh"]
+    },
+    {
+      "id": "ccnp-automation-apis",
+      "title": "CCNP ENCOR: automatizacion y APIs",
+      "tags": ["ccnp", "encor", "automation", "restconf", "netconf", "json", "yang", "api"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "Automatizacion ENCOR reconoce RESTCONF, NETCONF, modelos YANG, payloads JSON/XML, controladores y operaciones API para consultar o cambiar configuracion.",
+      "facts": ["YANG define el modelo de datos; JSON o XML son formatos de representacion.", "RESTCONF usa operaciones HTTP como GET o PATCH.", "NETCONF usa RPCs sobre una sesion segura.", "Las respuestas deben validarse por codigo y contenido."],
+      "commands": ["restconf", "show ip http server status", "GET /restconf/data/ietf-interfaces:interfaces", "Content-Type: application/yang-data+json"]
+    },
+    {
+      "id": "ccnp-eigrp-advanced",
+      "title": "CCNP ENARSI: EIGRP avanzado",
+      "tags": ["ccnp", "enarsi", "eigrp", "named mode", "stub", "summary-address", "feasible successor"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "EIGRP avanzado incluye named mode, address-families, vecinos, topologia, stub routing, sumarizacion, autenticacion y control de metricas.",
+      "facts": ["Named mode organiza address-family y af-interface.", "Stub evita que una sucursal sea transito.", "La sumarizacion se aplica en interfaz de salida.", "show ip eigrp topology revela sucesores y feasible successors."],
+      "commands": ["router eigrp ENTERPRISE", "address-family ipv4 unicast autonomous-system 100", "eigrp stub connected summary", "summary-address 10.30.0.0 255.255.0.0", "show eigrp address-family ipv4 neighbors"]
+    },
+    {
+      "id": "ccnp-ospf-advanced",
+      "title": "CCNP ENARSI: OSPF avanzado",
+      "tags": ["ccnp", "enarsi", "ospf", "lsa", "abr", "nssa", "summarization", "authentication"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "OSPF avanzado analiza areas, LSAs, ABR/ASBR, summarization, autenticacion, tipos de red y estados de adyacencia.",
+      "facts": ["Un ABR puede generar LSAs tipo 3 resumidos.", "Hello/dead, area, MTU y autenticacion deben coincidir.", "NSSA permite redistribucion limitada en areas especiales.", "La LSDB ayuda a diferenciar aprendizaje de instalacion en RIB."],
+      "commands": ["area 20 range 172.16.0.0 255.255.0.0", "ip ospf authentication message-digest", "show ip ospf neighbor", "show ip ospf database summary"]
+    },
+    {
+      "id": "ccnp-bgp-routing",
+      "title": "CCNP ENARSI: BGP",
+      "tags": ["ccnp", "enarsi", "bgp", "ebgp", "ibgp", "prefix-list", "route-map", "neighbor"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "BGP enterprise usa ASNs, vecinos eBGP/iBGP, anuncios exactos, next-hop, atributos y filtros de prefijos para controlar conectividad externa.",
+      "facts": ["El comando network requiere una ruta exacta en la RIB.", "remote-as debe coincidir con el AS vecino.", "prefix-list controla prefijos anunciados o recibidos.", "show ip bgp summary valida sesion y contadores."],
+      "commands": ["router bgp 65010", "neighbor 198.51.100.2 remote-as 65000", "network 203.0.113.0 mask 255.255.255.0", "ip prefix-list PUBLIC permit 203.0.113.0/24", "show ip bgp summary"]
+    },
+    {
+      "id": "ccnp-redistribution-route-maps",
+      "title": "CCNP ENARSI: redistribucion y route-maps",
+      "tags": ["ccnp", "enarsi", "redistribution", "route-map", "prefix-list", "tag", "metric"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "La redistribucion conecta dominios de routing y requiere metricas explicitas, filtros, tags y verificacion para evitar fugas o loops.",
+      "facts": ["EIGRP necesita metrica al redistribuir rutas externas.", "Route-maps permiten match y set de atributos.", "Tags ayudan a prevenir reentrada de rutas.", "show ip protocols muestra redistribucion activa."],
+      "commands": ["route-map OSPF-TO-EIGRP permit 10", "match ip address prefix-list OSPF-IN", "set tag 100", "redistribute ospf 1 metric 10000 100 255 1 1500 route-map OSPF-TO-EIGRP", "show route-map"]
+    },
+    {
+      "id": "ccnp-pbr-ip-sla",
+      "title": "CCNP ENARSI: PBR, IP SLA y tracking",
+      "tags": ["ccnp", "enarsi", "pbr", "ip sla", "object tracking", "route-map", "policy"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "PBR modifica el siguiente salto segun politica; IP SLA y tracking permiten validar disponibilidad antes de forzar una salida.",
+      "facts": ["PBR se aplica normalmente inbound en la interfaz donde entra el trafico.", "IP SLA debe programarse con schedule.", "verify-availability evita enviar a un next-hop caido.", "show ip policy confirma interfaces con PBR."],
+      "commands": ["ip sla 20", "track 20 ip sla 20 reachability", "route-map PBR permit 10", "set ip next-hop verify-availability 198.51.100.1 1 track 20", "ip policy route-map PBR", "show ip policy"]
+    },
+    {
+      "id": "ccnp-vpn-services",
+      "title": "CCNP ENARSI: VRF, GRE y VPN concepts",
+      "tags": ["ccnp", "enarsi", "vrf", "gre", "dmvpn", "nhrp", "tunnel", "vpn"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "Los servicios de overlay combinan VRF-lite, GRE y conceptos DMVPN/NHRP. El underlay debe alcanzar tunnel source/destination antes de enrutar por el overlay.",
+      "facts": ["GRE encapsula trafico sobre IP y no cifra por si mismo.", "DMVPN usa conceptos hub/spoke y NHRP.", "Tunnel source/destination deben ser alcanzables en underlay.", "MTU y ACLs pueden romper tuneles."],
+      "commands": ["interface Tunnel0", "tunnel mode gre ip", "tunnel source g0/0", "tunnel destination 198.51.100.2", "show interfaces tunnel0"]
+    },
+    {
+      "id": "ccnp-infrastructure-services",
+      "title": "CCNP ENARSI: servicios de infraestructura",
+      "tags": ["ccnp", "enarsi", "dhcp relay", "nat", "ntp", "syslog", "snmp", "aaa"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "Servicios como DHCP relay, NAT, NTP, syslog, SNMP y AAA sostienen la operacion diaria y pueden parecer problemas de routing cuando fallan.",
+      "facts": ["ip helper-address se configura en la interfaz que recibe broadcasts DHCP.", "NAT depende de inside/outside, ACL y ruta de retorno.", "SNMP/syslog requieren reachability al NMS.", "AAA afecta acceso administrativo."],
+      "commands": ["ip helper-address 10.100.0.10", "ip nat inside source list 10 interface g0/1 overload", "logging host 10.100.0.20", "show ip nat translations"]
+    },
+    {
+      "id": "ccnp-troubleshooting-method",
+      "title": "CCNP ENARSI: troubleshooting avanzado",
+      "tags": ["ccnp", "enarsi", "troubleshooting", "rib", "fib", "cef", "control-plane", "data-plane"],
+      "sourceRefs": [{ "sourceId": "ccnp-enterprise-local", "pages": [1] }],
+      "summary": "El troubleshooting avanzado correlaciona sintomas con estado fisico, vecinos, RIB/FIB, politicas, servicios y cambios recientes antes de modificar configuracion.",
+      "facts": ["Primero se define alcance y ultimo cambio conocido.", "Una ruta en tabla de protocolo puede no instalarse en RIB.", "CEF ayuda a validar el forwarding real.", "La ruta de retorno, NAT y filtros suelen explicar fallas asimetricas."],
+      "commands": ["show ip interface brief", "show ip route", "show ip protocols", "show ip bgp summary", "show cef exact-route", "show route-map"]
+    }
+  ]
+}
