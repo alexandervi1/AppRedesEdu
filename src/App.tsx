@@ -690,7 +690,7 @@ function KnowledgeBaseView({ locale, onBack }: { locale: Locale; onBack: () => v
 
               <div className="tag-list">
                 {activeEntry.tags.map((tag) => (
-                  <span key={tag} className="tech-badge">{tag}</span>
+                  <span key={tag} className="tech-badge" data-tag={tag.toLowerCase()}>{tag}</span>
                 ))}
               </div>
 
@@ -1655,13 +1655,13 @@ function AboutView({ locale, onBack }: { locale: Locale; onBack: () => void }) {
         <div className="about-tech-card" style={{ display: "grid", gap: "10px" }}>
           <h3>🛠️ {isEs ? "Stack Tecnológico" : "Tech Stack"}</h3>
           <div className="tech-badge-container" style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-            <span className="tech-badge">React 19</span>
-            <span className="tech-badge">TypeScript</span>
-            <span className="tech-badge">Vite</span>
-            <span className="tech-badge">Vanilla CSS HSL</span>
-            <span className="tech-badge">Express API</span>
-            <span className="tech-badge">Ollama IA</span>
-            <span className="tech-badge">Lucide Icons</span>
+            <span className="tech-badge" data-tag="react">React 19</span>
+            <span className="tech-badge" data-tag="typescript">TypeScript</span>
+            <span className="tech-badge" data-tag="vite">Vite</span>
+            <span className="tech-badge" data-tag="css">Vanilla CSS HSL</span>
+            <span className="tech-badge" data-tag="express">Express API</span>
+            <span className="tech-badge" data-tag="ollama">Ollama IA</span>
+            <span className="tech-badge" data-tag="lucide">Lucide Icons</span>
           </div>
           <p style={{ marginTop: "16px", fontSize: "0.88rem", color: "var(--text-muted)", lineHeight: "1.5", margin: "0" }}>
             {isEs 
