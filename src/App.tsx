@@ -6,12 +6,14 @@ import {
   ChevronRight,
   ClipboardCheck,
   Database,
+  FileText,
   Info,
   Languages,
   LayoutDashboard,
   Network,
   RefreshCcw,
   Router,
+  Search,
   TerminalSquare,
   Trophy,
 } from "lucide-react";
@@ -578,6 +580,27 @@ function Dashboard({
   );
 }
 
+function CopyableCode({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <div className="copyable-code-block">
+      <code>{code}</code>
+      <button
+        className={`copy-code-btn ${copied ? "copied" : ""}`}
+        onClick={handleCopy}
+        title={copied ? "¡Copiado!" : "Copiar comando"}
+      >
+        {copied ? "✓" : "❐"}
+      </button>
+    </div>
+  );
+}
+
 function KnowledgeBaseView({ locale, onBack }: { locale: Locale; onBack: () => void }) {
   const t = text[locale];
   const [activeEntryId, setActiveEntryId] = useState(knowledgeBase.entries[0].id);
@@ -600,7 +623,7 @@ function KnowledgeBaseView({ locale, onBack }: { locale: Locale; onBack: () => v
       <button className="back-button" onClick={onBack}>
         {t.back}
       </button>
-      <span className="eyebrow">{t.sources}</span>
+      <span className="eyebrow">{t.knowledge}</span>
       <h2>{t.knowledgeTitle}</h2>
       <p className="lead">
         {locale === "es"
@@ -608,20 +631,23 @@ function KnowledgeBaseView({ locale, onBack }: { locale: Locale; onBack: () => v
           : `Local material structured from ${knowledgeBase.sources.length} PDFs in the Materia_Redes folder.`}
       </p>
 
-      <section className="knowledge-summary">
-        <div>
-          <strong>{knowledgeBase.entries.length}</strong>
-          <span>{t.topics}</span>
+      <section className="knowledge-summary-container">
+        <div className="summary-stats">
+          <div className="stat-pill">
+            <span className="stat-pill-num">{knowledgeBase.entries.length}</span>
+            <span className="stat-pill-label">{t.topics}</span>
+          </div>
+          <div className="stat-pill">
+            <span className="stat-pill-num">{knowledgeBase.sources.length}</span>
+            <span className="stat-pill-label">{t.sources}</span>
+          </div>
         </div>
-        <div>
-          <strong>{knowledgeBase.sources.length}</strong>
-          <span>{t.sources}</span>
-        </div>
-        <label className="knowledge-search">
-          <span>{locale === "es" ? "Buscar" : "Search"}</span>
+        
+        <div className="search-bar-wrapper">
+          <Search size={18} className="search-icon" />
           <input
             value={query}
-            placeholder={locale === "es" ? "IPv6, VLAN, OSPF, WLAN..." : "IPv6, VLAN, OSPF, WLAN..."}
+            placeholder={locale === "es" ? "Buscar por IPv6, VLAN, OSPF, WLAN..." : "Search by IPv6, VLAN, OSPF, WLAN..."}
             onChange={(event) => {
               const value = event.target.value;
               setQuery(value);
@@ -634,7 +660,7 @@ function KnowledgeBaseView({ locale, onBack }: { locale: Locale; onBack: () => v
               if (nextEntry) setActiveEntryId(nextEntry.id);
             }}
           />
-        </label>
+        </div>
       </section>
 
       <div className="knowledge-layout">
@@ -645,7 +671,7 @@ function KnowledgeBaseView({ locale, onBack }: { locale: Locale; onBack: () => v
               className={entry.id === activeEntry.id ? "knowledge-topic active" : "knowledge-topic"}
               onClick={() => setActiveEntryId(entry.id)}
             >
-              <Database size={17} />
+              <Database size={16} />
               <span>{entry.title}</span>
             </button>
           ))}
@@ -655,48 +681,66 @@ function KnowledgeBaseView({ locale, onBack }: { locale: Locale; onBack: () => v
         </nav>
 
         <section className="knowledge-panel">
-          <div className="knowledge-heading">
-            <h3>{activeEntry.title}</h3>
-            <p>{activeEntry.summary}</p>
-          </div>
+          {activeEntry ? (
+            <>
+              <div className="knowledge-heading">
+                <h3>{activeEntry.title}</h3>
+                <p>{activeEntry.summary}</p>
+              </div>
 
-          <div className="tag-list">
-            {activeEntry.tags.map((tag) => (
-              <span key={tag}>{tag}</span>
-            ))}
-          </div>
+              <div className="tag-list">
+                {activeEntry.tags.map((tag) => (
+                  <span key={tag} className="tech-badge">{tag}</span>
+                ))}
+              </div>
 
-          <section className="lesson-section">
-            <h3>{t.facts}</h3>
-            <ul className="fact-list">
-              {activeEntry.facts.map((fact) => (
-                <li key={fact}>{fact}</li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="lesson-section">
-            <h3>{t.relatedCommands}</h3>
-            <div className="knowledge-command-list">
-              {activeEntry.commands.map((command) => (
-                <code key={command}>{command}</code>
-              ))}
-            </div>
-          </section>
-
-          <section className="lesson-section">
-            <h3>{t.sources}</h3>
-            <div className="source-list">
-              {activeEntry.sourceRefs.map((ref) => (
-                <div className="source-item" key={`${ref.sourceId}-${ref.pages.join("-")}`}>
-                  <strong>{sourceLabel(ref.sourceId)}</strong>
-                  <span>
-                    {t.sourcePages} {ref.pages.join(", ")}
-                  </span>
+              <section className="lesson-section">
+                <h3>{t.facts}</h3>
+                <div className="fact-card-list">
+                  {activeEntry.facts.map((fact, index) => (
+                    <div className="fact-card" key={`${activeEntry.id}-fact-${index}`}>
+                      <div className="fact-marker">
+                        <span>{index + 1}</span>
+                      </div>
+                      <p>{fact}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
+              </section>
+
+              {activeEntry.commands && activeEntry.commands.length > 0 && (
+                <section className="lesson-section">
+                  <h3>{t.relatedCommands}</h3>
+                  <div className="knowledge-command-list-vertical">
+                    {activeEntry.commands.map((command) => (
+                      <CopyableCode key={command} code={command} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              <section className="lesson-section">
+                <h3>{t.sources}</h3>
+                <div className="source-cards-grid">
+                  {activeEntry.sourceRefs.map((ref, index) => (
+                    <div className="source-card" key={`${ref.sourceId}-${index}`}>
+                      <div className="source-card-icon">
+                        <FileText size={20} />
+                      </div>
+                      <div className="source-card-info">
+                        <strong>{sourceLabel(ref.sourceId)}</strong>
+                        <span>
+                          {t.sourcePages} {ref.pages.join(", ")}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </>
+          ) : (
+            <p className="empty-state">{locale === "es" ? "Selecciona un tema." : "Select a topic."}</p>
+          )}
         </section>
       </div>
     </article>
