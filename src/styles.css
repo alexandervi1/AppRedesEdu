@@ -1588,6 +1588,92 @@ button:disabled {
   color: #b91c1c;
 }
 
+/* About Section Styles */
+.about-surface {
+  max-width: 1000px;
+}
+
+.about-layout-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1.2fr 0.8fr;
+  margin-bottom: 24px;
+}
+
+.about-main-card,
+.about-tech-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+
+.about-main-card:hover,
+.about-tech-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.about-main-card h3,
+.about-tech-card h3 {
+  color: var(--text-main);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.about-feature-list li {
+  line-height: 1.6;
+  color: var(--text-main);
+  font-size: 0.92rem;
+}
+
+.tech-badge {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(15, 118, 110, 0.05);
+}
+
+.about-creator-section {
+  display: grid;
+}
+
+.creator-card {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+
+.creator-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.creator-avatar {
+  background: var(--primary);
+  color: #ffffff;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px var(--primary-glow);
+  flex-shrink: 0;
+}
+
 /* Responsiveness adjustments */
 @media (max-width: 980px) {
   .app-shell {
@@ -1615,7 +1701,8 @@ button:disabled {
   .command-layout,
   .simulator-layout,
   .knowledge-layout,
-  .knowledge-summary {
+  .knowledge-summary,
+  .about-layout-grid {
     align-items: stretch;
     grid-template-columns: 1fr;
   }
@@ -1690,5 +1777,13 @@ button:disabled {
   .brand-mark {
     height: 36px;
     width: 36px;
+  }
+
+  .creator-card {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    padding: 20px;
+    gap: 16px;
   }
 }
