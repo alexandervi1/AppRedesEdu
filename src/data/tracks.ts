@@ -1,4 +1,4 @@
-import { CourseTrack } from "../types";
+import { CourseTrack } from "@shared/types";
 import { ccnpCourseModules } from "./ccnpCourse";
 import { courseModules } from "./course";
 

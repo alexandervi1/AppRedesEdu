@@ -1,4 +1,4 @@
-import { ProgressState } from "../types";
+import { ProgressState } from "@shared/types";
 
 const STORAGE_KEY = "app-redes-progress";
 

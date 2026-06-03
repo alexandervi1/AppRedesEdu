@@ -1,5 +1,5 @@
-import { CommandTopic } from "../data/commands";
-import { CourseTrack, Locale } from "../types";
+import { CommandTopic } from "@data/commands";
+import { CourseTrack, Locale } from "@shared/types";
 
 export type AiStatus = {
   available: boolean;

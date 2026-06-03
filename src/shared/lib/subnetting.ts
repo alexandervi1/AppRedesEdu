@@ -1,4 +1,4 @@
-import { SubnetExercise, SubnetResult } from "../types";
+import { SubnetExercise, SubnetResult } from "@shared/types";
 
 const exercises: SubnetExercise[] = [
   { baseNetwork: "192.168.10.0", prefix: 24, newPrefix: 26, targetSubnet: 2 },

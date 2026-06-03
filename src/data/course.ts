@@ -1,4 +1,4 @@
-import { CourseModule } from "../types";
+import { CourseModule } from "@shared/types";
 import { ensureMinimumQuizSize } from "./quizExpansion";
 
 const baseCourseModules: CourseModule[] = [

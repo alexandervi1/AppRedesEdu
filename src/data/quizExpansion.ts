@@ -1,5 +1,5 @@
 import knowledgeBase from "./knowledgeBase.json";
-import { BilingualText, CourseModule, Lesson, QuizQuestion } from "../types";
+import { BilingualText, CourseModule, Lesson, QuizQuestion } from "@shared/types";
 
 const MIN_QUIZ_QUESTIONS = 50;
 

@@ -1,4 +1,4 @@
-import { BilingualText, CourseModule, Difficulty, LessonLab, QuizQuestion } from "../types";
+import { BilingualText, CourseModule, Difficulty, LessonLab, QuizQuestion } from "@shared/types";
 import { ensureMinimumQuizSize } from "./quizExpansion";
 
 type ModuleSeed = {

@@ -4,6 +4,13 @@ import express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  createTeacherContent,
+  deleteTeacherContent,
+  listTeacherContent,
+  updateTeacherContent,
+} from "./teacherContentStore.js";
+import { createSubject, deleteSubject, listSubjects, updateSubject } from "./subjectStore.js";
 
 const app = express();
 const port = Number(process.env.PORT ?? 5174);
@@ -11,6 +18,8 @@ const ollamaHost = process.env.OLLAMA_HOST ?? "http://127.0.0.1:11434";
 const ollamaModel = process.env.OLLAMA_MODEL ?? "llama3.2:3b";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const knowledgeBasePath = path.resolve(__dirname, "../src/data/knowledgeBase.json");
+const teacherContentPath = path.resolve(__dirname, "../data/teacherContent.json");
+const subjectsPath = path.resolve(__dirname, "../data/subjects.json");
 const knowledgeBase = JSON.parse(fs.readFileSync(knowledgeBasePath, "utf8"));
 
 app.use(cors({ origin: ["http://127.0.0.1:5173", "http://localhost:5173"] }));
@@ -284,6 +293,63 @@ app.get("/api/knowledge", (_req, res) => {
       sourceRefs,
     })),
   });
+});
+
+app.get("/api/teacher/content", (_req, res) => {
+  res.json({ items: listTeacherContent(teacherContentPath) });
+});
+
+app.get("/api/student/teacher-content", (_req, res) => {
+  const items = listTeacherContent(teacherContentPath).filter((item) => item.status === "published");
+  res.json({ items });
+});
+
+app.get("/api/subjects", (_req, res) => {
+  const subjects = listSubjects(subjectsPath).filter((subject) => subject.status === "active");
+  res.json({ subjects });
+});
+
+app.get("/api/teacher/subjects", (_req, res) => {
+  res.json({ subjects: listSubjects(subjectsPath) });
+});
+
+app.post("/api/teacher/subjects", (req, res) => {
+  const result = createSubject(subjectsPath, req.body ?? {});
+  if (result.errors) return res.status(400).json({ errors: result.errors });
+  res.status(201).json(result.subject);
+});
+
+app.put("/api/teacher/subjects/:id", (req, res) => {
+  const result = updateSubject(subjectsPath, req.params.id, req.body ?? {});
+  if (result.notFound) return res.status(404).json({ error: "Asignatura no encontrada." });
+  if (result.errors) return res.status(400).json({ errors: result.errors });
+  res.json(result.subject);
+});
+
+app.delete("/api/teacher/subjects/:id", (req, res) => {
+  const result = deleteSubject(subjectsPath, req.params.id);
+  if (result.notFound) return res.status(404).json({ error: "Asignatura no encontrada." });
+  if (result.errors) return res.status(400).json({ errors: result.errors });
+  res.status(204).send();
+});
+
+app.post("/api/teacher/content", (req, res) => {
+  const result = createTeacherContent(teacherContentPath, req.body ?? {});
+  if (result.errors) return res.status(400).json({ errors: result.errors });
+  res.status(201).json(result.item);
+});
+
+app.put("/api/teacher/content/:id", (req, res) => {
+  const result = updateTeacherContent(teacherContentPath, req.params.id, req.body ?? {});
+  if (result.notFound) return res.status(404).json({ error: "Contenido no encontrado." });
+  if (result.errors) return res.status(400).json({ errors: result.errors });
+  res.json(result.item);
+});
+
+app.delete("/api/teacher/content/:id", (req, res) => {
+  const result = deleteTeacherContent(teacherContentPath, req.params.id);
+  if (result.notFound) return res.status(404).json({ error: "Contenido no encontrado." });
+  res.status(204).send();
 });
 
 app.post("/api/ai/tutor", async (req, res) => {

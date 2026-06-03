@@ -9,6 +9,14 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["src/app/*"],
+      "@data/*": ["src/data/*"],
+      "@features/*": ["src/features/*"],
+      "@shared/*": ["src/shared/*"],
+      "@styles/*": ["src/styles/*"]
+    },
     "module": "ESNext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,

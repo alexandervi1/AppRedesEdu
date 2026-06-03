@@ -1,4 +1,4 @@
-import { Locale } from "../types";
+import { Locale } from "@shared/types";
 
 export type DeviceCategory = "general" | "router" | "switch" | "wlc" | "iot" | "end-device";
 

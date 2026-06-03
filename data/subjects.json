@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "subjects": [
+    {
+      "id": "redes-ccna-ccnp",
+      "code": "REDES",
+      "status": "active",
+      "title": {
+        "es": "Redes CCNA / CCNP",
+        "en": "CCNA / CCNP Networks"
+      },
+      "description": {
+        "es": "Asignatura base para estudiar fundamentos, switching, routing, comandos Cisco y laboratorios.",
+        "en": "Base subject for studying fundamentals, switching, routing, Cisco commands, and labs."
+      },
+      "createdAt": "1970-01-01T00:00:00.000Z",
+      "updatedAt": "1970-01-01T00:00:00.000Z"
+    }
+  ]
+}

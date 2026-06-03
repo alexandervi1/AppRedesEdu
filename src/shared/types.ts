@@ -9,6 +9,33 @@ export type Difficulty = "Inicial" | "Intermedio" | "Avanzado";
 
 export type CourseTrack = "ccna" | "ccnp";
 
+export type SubjectConfig = {
+  id: string;
+  code: string;
+  status: "active" | "archived";
+  title: BilingualText;
+  description: BilingualText;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type TeacherContentStatus = "draft" | "published";
+
+export type TeacherContentType = "module" | "lesson" | "quiz" | "command" | "knowledge";
+
+export type TeacherContentItem = {
+  id: string;
+  subjectId: string;
+  type: TeacherContentType;
+  status: TeacherContentStatus;
+  title: BilingualText;
+  summary: BilingualText;
+  body: BilingualText;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type LessonLab = {
   topology: BilingualText;
   tasks: BilingualText[];

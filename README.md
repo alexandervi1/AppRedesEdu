@@ -100,22 +100,44 @@ ollama pull llama3.2:3b
 
 ```text
 ├── server/
-│   └── index.js              # Servidor backend Express para IA / Ollama
+│   ├── index.js              # Servidor backend Express para IA / Ollama
+│   ├── subjectStore.js       # Store JSON de asignaturas configurables
+│   └── teacherContentStore.js # Store JSON del panel docente
+├── data/
+│   ├── subjects.json         # Configuración editable de asignaturas
+│   └── teacherContent.json   # Contenido editable creado desde el panel docente
 ├── src/
+│   ├── app/
+│   │   ├── App.tsx           # Contenedor principal SPA, navegación y vistas
+│   │   └── i18n.ts           # Textos bilingües de la interfaz
 │   ├── data/
 │   │   ├── course.ts         # Contenido del plan de estudios CCNA
 │   │   ├── ccnpCourse.ts     # Contenido del plan de estudios CCNP Enterprise
 │   │   ├── commands.ts       # Datos del Entrenador de Comandos
-│   │   ├── knowledgeBase.json# Biblioteca de conocimiento compartido
+│   │   ├── knowledgeBase.json # Biblioteca de conocimiento compartido
 │   │   └── tracks.ts         # Registro y definición de las rutas (tracks)
-│   ├── lib/
-│   │   ├── aiTutor.ts        # Conector API del Tutor IA local
-│   │   ├── progress.ts       # Gestor de progreso en LocalStorage
-│   │   └── subnetting.ts     # Lógica matemática de subnetting
-│   ├── App.tsx               # Componente principal SPA y Dashboard
+│   ├── features/
+│   │   ├── about/            # Vista informativa
+│   │   ├── commands/         # Entrenador de comandos Cisco
+│   │   ├── dashboard/        # Panel de control
+│   │   ├── knowledge/        # Base de conocimiento
+│   │   ├── lessons/          # Vista de lecciones
+│   │   ├── quiz/             # Simulador de quizzes
+│   │   ├── student/          # Vista alumno de contenido docente publicado
+│   │   ├── subnetting/       # Laboratorio de subnetting
+│   │   └── teacher/          # Panel docente para cargar/corregir contenido
+│   ├── shared/
+│   │   ├── types.ts          # Declaración de tipos TypeScript compartidos
+│   │   ├── lib/
+│   │   │   ├── aiTutor.ts    # Conector API del Tutor IA local
+│   │   │   ├── progress.ts   # Gestor de progreso en LocalStorage
+│   │   │   ├── subjects.ts   # Cliente API de asignaturas
+│   │   │   └── subnetting.ts # Lógica matemática de subnetting
+│   │   └── ui/
+│   │       └── CopyableCode.tsx # Componente UI reutilizable
 │   ├── main.tsx              # Punto de entrada de React
-│   ├── styles.css            # Hoja de estilos globales y sistema HSL
-│   └── types.ts              # Declaración de tipos TypeScript
+│   └── styles/
+│       └── global.css        # Hoja de estilos globales y sistema HSL
 ├── package.json              # Configuración y dependencias
 └── tsconfig.json             # Configuración del compilador TypeScript
 ```
