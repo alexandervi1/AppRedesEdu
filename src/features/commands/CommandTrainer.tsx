@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BrainCircuit, CheckCircle2, ClipboardCheck, RefreshCcw, TerminalSquare } from "lucide-react";
-import { deviceCategories, commandTopics as fullCommandTopics, DeviceCategory } from "@data/commands";
+import { CheckCircle2, ClipboardCheck, RefreshCcw, TerminalSquare } from "lucide-react";
+import { deviceCategories, commandTopics as fullCommandTopics, CommandTopic, DeviceCategory } from "@data/commands";
 import { appText } from "@app/i18n";
-import { AiStatus, getAiStatus, PracticeMode, requestNextChallenge, requestTutorFeedback, TutorChallenge } from "@shared/lib/aiTutor";
 import { CourseTrack, Locale, ProgressState } from "@shared/types";
+
+type PracticeMode = "recognize" | "write" | "configure" | "diagnose";
+type CommandChallenge = CommandTopic["challenge"];
 export function CommandTrainer({
   locale,
   selectedTrackId,
@@ -26,11 +28,8 @@ export function CommandTrainer({
   const [practiceMode, setPracticeMode] = useState<PracticeMode>("write");
   const [answer, setAnswer] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [aiStatus, setAiStatus] = useState<AiStatus | null>(null);
-  const [tutorFeedback, setTutorFeedback] = useState("");
-  const [generatedChallenge, setGeneratedChallenge] = useState("");
-  const [currentChallenge, setCurrentChallenge] = useState<TutorChallenge>(visibleTopics[0].challenge);
-  const [aiLoading, setAiLoading] = useState(false);
+  const [commandFeedback, setCommandFeedback] = useState("");
+  const [currentChallenge, setCurrentChallenge] = useState<CommandChallenge>(visibleTopics[0].challenge);
   const activeTopic = visibleTopics.find((topic) => topic.id === activeTopicId) ?? visibleTopics[0];
   // Helper to parse prompt and command
   const parseStudentInput = (input: string) => {
@@ -72,7 +71,6 @@ export function CommandTrainer({
   const isCorrect = isCommandCorrect && isPromptCorrect;
   const challengeId = `${activeTopic.id}:${practiceMode}`;
   const attemptStats = progress.commandAttempts[challengeId];
-  const aiReady = Boolean(aiStatus?.available && aiStatus.modelInstalled);
   const practiceModes: Array<{ id: PracticeMode; label: string }> = [
     { id: "recognize", label: t.recognizeMode },
     { id: "write", label: t.writeMode },
@@ -81,25 +79,10 @@ export function CommandTrainer({
   ];
 
   useEffect(() => {
-    getAiStatus()
-      .then((status) => setAiStatus(status))
-      .catch(() =>
-        setAiStatus({
-          available: false,
-          model: "llama3.2:3b",
-          modelInstalled: false,
-          models: [],
-          message: "Backend IA no disponible.",
-        }),
-      );
-  }, []);
-
-  useEffect(() => {
     setCurrentChallenge(activeTopic.challenge);
     setAnswer("");
     setSubmitted(false);
-    setTutorFeedback("");
-    setGeneratedChallenge("");
+    setCommandFeedback("");
   }, [activeTopic.id, practiceMode]);
 
   const chooseDevice = (device: DeviceCategory) => {
@@ -109,8 +92,7 @@ export function CommandTrainer({
     setActiveTopicId(firstTopic.id);
     setAnswer("");
     setSubmitted(false);
-    setTutorFeedback("");
-    setGeneratedChallenge("");
+    setCommandFeedback("");
     setCurrentChallenge(firstTopic.challenge);
   };
 
@@ -118,8 +100,7 @@ export function CommandTrainer({
     setActiveTopicId(topicId);
     setAnswer("");
     setSubmitted(false);
-    setTutorFeedback("");
-    setGeneratedChallenge("");
+    setCommandFeedback("");
     const nextTopic = fullCommandTopics.find((topic) => topic.id === topicId);
     if (nextTopic) setCurrentChallenge(nextTopic.challenge);
   };
@@ -177,66 +158,11 @@ export function CommandTrainer({
       : `Diagnosis: review syntax and context. Short explanation: the answer does not match the current task. Hint: ${currentChallenge.hint.en}`;
   };
 
-  const verifyAnswer = async () => {
+  const verifyAnswer = () => {
     const correct = normalizedAnswer === expectedAnswer;
     setSubmitted(true);
-    setTutorFeedback(deterministicFeedback(correct));
+    setCommandFeedback(deterministicFeedback(correct));
     onAttempt(challengeId, answer, correct);
-
-    if (!aiReady) return;
-
-    setAiLoading(true);
-    try {
-      const feedback = await requestTutorFeedback({
-        locale,
-        courseTrack: selectedTrackId,
-        trackLabel,
-        topic: activeTopic,
-        challenge: currentChallenge,
-        studentAnswer: answer,
-        isCorrect: correct,
-        mode: practiceMode,
-      });
-      setTutorFeedback(feedback || deterministicFeedback(correct));
-    } catch (error) {
-      setTutorFeedback(`${deterministicFeedback(correct)}\n\nIA local: ${error instanceof Error ? error.message : "sin respuesta"}`);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const generateChallenge = async () => {
-    setGeneratedChallenge("");
-    setAiLoading(true);
-    try {
-      const result = await requestNextChallenge({
-        locale,
-        courseTrack: selectedTrackId,
-        trackLabel,
-        topic: activeTopic,
-        recentAttempts: Object.entries(progress.commandAttempts).slice(-5),
-        mode: practiceMode,
-      });
-      setCurrentChallenge(result.challenge);
-      setAnswer("");
-      setSubmitted(false);
-      setTutorFeedback("");
-      setGeneratedChallenge(
-        `${result.content}\n\n${
-          result.source === "ai"
-            ? locale === "es"
-              ? "Origen: IA local con base de conocimiento."
-              : "Source: local AI with knowledge base."
-            : locale === "es"
-              ? "Origen: generador local validado."
-              : "Source: validated local generator."
-        }`,
-      );
-    } catch (error) {
-      setGeneratedChallenge(error instanceof Error ? error.message : "No se pudo generar el reto.");
-    } finally {
-      setAiLoading(false);
-    }
   };
 
   return (
@@ -251,23 +177,6 @@ export function CommandTrainer({
           ? "Practica comandos y configuraciones esenciales de Packet Tracer por dispositivo, modo, propósito, ejemplo y reto."
           : "Practice essential Packet Tracer commands and configurations by device, mode, purpose, example, and challenge."}
       </p>
-
-      <section className={aiReady ? "ai-status online" : "ai-status offline"}>
-        <BrainCircuit size={19} />
-        <div>
-          <strong>{t.aiTutor}</strong>
-          <span>
-            {aiReady ? t.aiOnline : t.aiOffline} · {aiStatus?.model ?? "llama3.2:3b"}
-          </span>
-          {!aiReady && (
-            <small>
-              {locale === "es"
-                ? "Funciona con feedback local. Inicia el backend y descarga el modelo configurado para activar IA."
-                : "The local fallback works. Start the backend and pull the configured model to enable AI."}
-            </small>
-          )}
-        </div>
-      </section>
 
       <section className="command-control-bar" aria-label={locale === "es" ? "Controles de práctica" : "Practice controls"}>
         <div className="control-block">
@@ -296,8 +205,7 @@ export function CommandTrainer({
                   setPracticeMode(mode.id);
                   setAnswer("");
                   setSubmitted(false);
-                  setTutorFeedback("");
-                  setGeneratedChallenge("");
+                  setCommandFeedback("");
                 }}
               >
                 {mode.label}
@@ -380,7 +288,7 @@ export function CommandTrainer({
                 onChange={(event) => {
                   setAnswer(event.target.value);
                   setSubmitted(false);
-                  setTutorFeedback("");
+                  setCommandFeedback("");
                 }}
               />
             </label>
@@ -393,22 +301,17 @@ export function CommandTrainer({
               </p>
             )}
             <div className="lesson-actions">
-              <button className="primary-button" onClick={verifyAnswer} disabled={!answer.trim() || aiLoading}>
+              <button className="primary-button" onClick={verifyAnswer} disabled={!answer.trim()}>
                 <ClipboardCheck size={18} />
-                {aiLoading ? "..." : t.verify}
-              </button>
-              <button className="ghost-button" onClick={generateChallenge} disabled={aiLoading}>
-                <BrainCircuit size={18} />
-                {t.nextChallenge}
+                {t.verify}
               </button>
             </div>
           </section>
 
-          {(tutorFeedback || generatedChallenge) && (
-            <section className="tutor-panel">
-              <h3>{t.tutorFeedback}</h3>
-              {tutorFeedback && <p>{tutorFeedback}</p>}
-              {generatedChallenge && <pre>{generatedChallenge}</pre>}
+          {commandFeedback && (
+            <section className="feedback-panel">
+              <h3>{locale === "es" ? "Retroalimentación" : "Feedback"}</h3>
+              {commandFeedback && <p>{commandFeedback}</p>}
             </section>
           )}
         </section>

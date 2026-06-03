@@ -1,6 +1,6 @@
 # App Redes CCNA / CCNP Enterprise
 
-Aplicación web local y moderna para estudiar redes con rutas independientes de **CCNA** y **CCNP Enterprise**. Incorpora lecciones bilingües, laboratorios guiados paso a paso, simuladores de exámenes, retos interactivos de subnetting, un entrenador de comandos Cisco por CLI y un Tutor de Inteligencia Artificial local.
+Aplicación web local y moderna para estudiar redes con rutas independientes de **CCNA** y **CCNP Enterprise**. Incorpora lecciones bilingües, laboratorios guiados paso a paso, simuladores de exámenes, retos interactivos de subnetting, un entrenador de comandos Cisco por CLI y generación de preguntas con IA desde la base de conocimiento.
 
 Esta versión cuenta con un **diseño visual premium unificado**, libre de duplicidades en menús y con el contenido del curso estructurado pedagógicamente en etapas progresivas de aprendizaje.
 
@@ -11,7 +11,7 @@ Esta versión cuenta con un **diseño visual premium unificado**, libre de dupli
 ### 💻 Interfaz de Usuario Premium & Moderna
 * **Diseño Visual de Alta Gama:** Interfaz renovada bajo un sistema de diseño con paleta de colores HSL cohesiva, tipografías elegantes (Inter), tarjetas interactivas que responden físicamente a los gestos del usuario (`translateY(-4px)` y sombras dinámicas 3D).
 * **Navegación Unificada y Limpia:** Barra lateral de control integrada dividida por secciones funcionales (Dashboard, Práctica, Temas del Curso e Idioma). Se eliminaron todos los menús y botones redundantes de la cabecera.
-* **Tutor de IA con Estilo Vivo:** Indicador animado y elegante en degradados que refleja el estado de la conexión con el Tutor IA local.
+* **Generación de Quizzes con IA:** Crea nuevas preguntas desde la base de conocimiento del módulo usando Ollama, con fallback local validado si la IA no está disponible.
 
 ### 📚 Agrupación Progresiva por Etapas de Aprendizaje
 Los módulos del curso en el Panel de Control se clasifican y estructuran de forma secuencial para guiar al estudiante:
@@ -31,7 +31,7 @@ Los módulos del curso en el Panel de Control se clasifican y estructuran de for
 
 * **Node.js:** Versión 20.x o superior recomendada.
 * **npm:** Gestor de paquetes incluido con Node.js.
-* **Ollama (Opcional):** Si deseas habilitar el tutor de IA inteligente de manera local.
+* **Ollama (Opcional):** Si deseas habilitar generación de preguntas con IA de manera local.
 
 ---
 
@@ -60,7 +60,7 @@ Los módulos del curso en el Panel de Control se clasifican y estructuran de for
 
 ## 💻 Ejecución en Desarrollo
 
-La aplicación está dividida en un frontend SPA rápido (Vite) y un servidor backend ligero para las llamadas del Tutor IA (Express).
+La aplicación está dividida en un frontend SPA rápido (Vite) y un servidor backend ligero para las llamadas de IA local y contenido editable (Express).
 
 * **Iniciar Frontend (Vite):**
   ```bash
@@ -86,13 +86,13 @@ La aplicación está dividida en un frontend SPA rápido (Vite) y un servidor ba
 
 ---
 
-## 🧠 IA Local con Ollama
+## 🧠 Generación de Quizzes con Ollama
 
-Por defecto, el backend local del Tutor IA utiliza el modelo **llama3.2:3b**. Puedes descargarlo en tu equipo ejecutando:
+Por defecto, el backend local utiliza el modelo **llama3.2:3b** para generar preguntas desde la base de conocimiento. Puedes descargarlo en tu equipo ejecutando:
 ```bash
 ollama pull llama3.2:3b
 ```
-*Nota: Si no dispones de Ollama o la IA local está apagada, la aplicación continuará funcionando normalmente utilizando un motor de respuesta determinístico local.*
+*Nota: Si no dispones de Ollama o la IA local está apagada, la aplicación continuará funcionando normalmente utilizando un generador determinístico local.*
 
 ---
 
@@ -129,7 +129,7 @@ ollama pull llama3.2:3b
 │   ├── shared/
 │   │   ├── types.ts          # Declaración de tipos TypeScript compartidos
 │   │   ├── lib/
-│   │   │   ├── aiTutor.ts    # Conector API del Tutor IA local
+│   │   │   ├── aiQuiz.ts     # Generador API de preguntas con IA
 │   │   │   ├── progress.ts   # Gestor de progreso en LocalStorage
 │   │   │   ├── subjects.ts   # Cliente API de asignaturas
 │   │   │   └── subnetting.ts # Lógica matemática de subnetting

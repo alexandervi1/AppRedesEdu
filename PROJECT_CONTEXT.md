@@ -4,12 +4,12 @@ Documento de contexto para futuras sesiones de trabajo en este repositorio.
 
 ## Resumen
 
-AppRedes es una aplicacion web local para estudiar redes con rutas CCNA y CCNP Enterprise. Incluye lecciones bilingues, quizzes, laboratorio de subnetting, base de conocimiento, entrenador de comandos Cisco y un tutor IA local apoyado por Ollama.
+AppRedes es una aplicacion web local para estudiar redes con rutas CCNA y CCNP Enterprise. Incluye lecciones bilingues, quizzes, laboratorio de subnetting, base de conocimiento, entrenador de comandos Cisco y generacion de preguntas con IA apoyada por Ollama.
 
 La aplicacion esta dividida en:
 
 - Frontend SPA: React + TypeScript + Vite.
-- Backend local: Express para endpoints del tutor IA y acceso a Ollama.
+- Backend local: Express para endpoints de IA local, contenido editable y acceso a Ollama.
 - Datos academicos: archivos TypeScript/JSON en `src/data`.
 - Persistencia local: `localStorage` para progreso del usuario.
 
@@ -78,7 +78,7 @@ src/
   shared/
     types.ts
     lib/
-      aiTutor.ts
+      aiQuiz.ts
       progress.ts
       subjects.ts
       subnetting.ts
@@ -179,12 +179,10 @@ Cuando se agreguen datos nuevos, mantener estos contratos para evitar errores co
 - Calcula direccion de subred, broadcast, primer/ultimo host, hosts usables y cantidad de subredes.
 - Valida IPs con `isValidIp`.
 
-`src/shared/lib/aiTutor.ts`
+`src/shared/lib/aiQuiz.ts`
 
-- Cliente frontend para `/api/ai/status`.
-- Cliente frontend para `/api/ai/tutor`.
-- Cliente frontend para `/api/ai/next-challenge`.
-- Tipos relacionados: `AiStatus`, `PracticeMode`, `TutorChallenge`, `NextChallengeResult`.
+- Cliente frontend para `/api/ai/quiz-questions`.
+- Permite generar preguntas adicionales desde la base de conocimiento del modulo.
 
 ## Backend IA
 
@@ -212,8 +210,7 @@ Endpoints:
 - `POST /api/teacher/content`: crea contenido docente con validacion educativa minima.
 - `PUT /api/teacher/content/:id`: actualiza contenido docente.
 - `DELETE /api/teacher/content/:id`: elimina contenido docente.
-- `POST /api/ai/tutor`: genera feedback para respuestas del entrenador CLI.
-- `POST /api/ai/next-challenge`: intenta generar un reto con Ollama y cae a generador local deterministico si Ollama no esta disponible.
+- `POST /api/ai/quiz-questions`: genera preguntas de quiz desde la base de conocimiento con Ollama o fallback local.
 
 El backend carga `src/data/knowledgeBase.json` directamente desde disco.
 
@@ -257,9 +254,9 @@ Agregar comandos CLI:
 3. Validar que el comando esperado no sea ambiguo.
 4. Revisar feedback deterministico en `CommandTrainer` si cambia la logica de evaluacion.
 
-Cambiar tutor IA:
+Cambiar generacion de preguntas con IA:
 
-1. Frontend: `src/shared/lib/aiTutor.ts` y `CommandTrainer` en `src/app/App.tsx`.
+1. Frontend: `src/shared/lib/aiQuiz.ts` y `src/features/quiz/QuizView.tsx`.
 2. Backend: `server/index.js`.
 3. Mantener fallback local para que la app funcione sin Ollama.
 
@@ -298,7 +295,7 @@ Flujos a revisar cuando se toque UI o datos:
 - Resolver subnetting.
 - Buscar en base de conocimiento.
 - Probar entrenador de comandos en modos reconocer/escribir/configurar/diagnosticar.
-- Revisar estado del tutor IA con Ollama apagado y encendido si aplica.
+- Probar generacion de preguntas con Ollama apagado y encendido si aplica.
 
 ## Estado Del Repositorio Al Crear Este Documento
 

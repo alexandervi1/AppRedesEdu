@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, ChevronRight, ClipboardCheck, RefreshCcw } from "lucide-react";
+import { BrainCircuit, CheckCircle2, ChevronRight, ClipboardCheck, RefreshCcw } from "lucide-react";
 import { appText } from "@app/i18n";
+import { requestGeneratedQuizQuestions } from "@shared/lib/aiQuiz";
 import { CourseModule, Locale, QuizQuestion } from "@shared/types";
 export function QuizView({
   locale,
@@ -30,7 +31,11 @@ export function QuizView({
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(50 * 60);
-  const questions = attemptQuestions.length > 0 ? attemptQuestions : module.quiz.slice(0, 50);
+  const [generatedQuestions, setGeneratedQuestions] = useState<QuizQuestion[]>([]);
+  const [generatingQuestions, setGeneratingQuestions] = useState(false);
+  const [generationMessage, setGenerationMessage] = useState("");
+  const questionBank = useMemo(() => [...generatedQuestions, ...module.quiz], [generatedQuestions, module.quiz]);
+  const questions = attemptQuestions.length > 0 ? attemptQuestions : questionBank.slice(0, 50);
   const activeQuestion = questions[activeQuestionIndex] ?? questions[0];
   const correctAnswers = questions.filter((question) => answers[question.id] === question.correctIndex).length;
   const score = questions.length > 0 ? Math.round((correctAnswers / questions.length) * 100) : 0;
@@ -64,8 +69,8 @@ export function QuizView({
     };
   };
   const selectedQuestionCount = () => {
-    if (questionLimit === "all") return module.quiz.length;
-    return Math.min(questionLimit, module.quiz.length);
+    if (questionLimit === "all") return questionBank.length;
+    return Math.min(questionLimit, questionBank.length);
   };
 
   useEffect(() => {
@@ -75,6 +80,8 @@ export function QuizView({
     setSubmitted(false);
     setActiveQuestionIndex(0);
     setTimeLeft(50 * secondsPerQuestion);
+    setGeneratedQuestions([]);
+    setGenerationMessage("");
   }, [module.id, module.quiz.length]);
 
   const submit = useCallback(() => {
@@ -99,7 +106,7 @@ export function QuizView({
 
   const startAttempt = () => {
     const seed = `${module.id}-${Date.now()}`;
-    const pickedQuestions = (shuffleQuestions ? seededShuffle(module.quiz, `${seed}-questions`) : [...module.quiz]).slice(
+    const pickedQuestions = (shuffleQuestions ? seededShuffle(questionBank, `${seed}-questions`) : [...questionBank]).slice(
       0,
       selectedQuestionCount(),
     );
@@ -113,6 +120,30 @@ export function QuizView({
     setActiveQuestionIndex(0);
     setTimeLeft(preparedQuestions.length * secondsPerQuestion);
     setStarted(true);
+  };
+
+  const generateQuestions = async () => {
+    setGeneratingQuestions(true);
+    try {
+      const result = await requestGeneratedQuizQuestions({ locale, module, count: 5 });
+      setGeneratedQuestions((current) => {
+        const existingIds = new Set(current.map((question) => question.id));
+        return [...result.questions.filter((question) => !existingIds.has(question.id)), ...current];
+      });
+      setGenerationMessage(
+        result.source === "ai"
+          ? locale === "es"
+            ? `Se agregaron ${result.questions.length} preguntas generadas con IA desde la base de conocimiento.`
+            : `${result.questions.length} AI-generated questions were added from the knowledge base.`
+          : locale === "es"
+            ? `Se agregaron ${result.questions.length} preguntas locales desde la base de conocimiento.`
+            : `${result.questions.length} local questions were added from the knowledge base.`,
+      );
+    } catch (error) {
+      setGenerationMessage(error instanceof Error ? error.message : "No se pudieron generar preguntas.");
+    } finally {
+      setGeneratingQuestions(false);
+    }
   };
 
   const chooseAnswer = (question: QuizQuestion, optionIndex: number) => {
@@ -137,10 +168,26 @@ export function QuizView({
             <h3>{t.simulatorSettings}</h3>
             <p className="lead">
               {locale === "es"
-                ? `${module.quiz.length} preguntas disponibles en este módulo.`
-                : `${module.quiz.length} questions available in this module.`}
+                ? `${questionBank.length} preguntas disponibles en este módulo.`
+                : `${questionBank.length} questions available in this module.`}
             </p>
           </div>
+
+          <section className="ai-quiz-generator">
+            <div>
+              <h3>{locale === "es" ? "Crear preguntas con IA" : "Create questions with AI"}</h3>
+              <p>
+                {locale === "es"
+                  ? "Genera preguntas nuevas usando la base de conocimiento vinculada al módulo. Si Ollama no responde, se usa un generador local."
+                  : "Generate new questions using the module knowledge base. If Ollama is unavailable, a local generator is used."}
+              </p>
+            </div>
+            <button className="ghost-button" onClick={generateQuestions} disabled={generatingQuestions}>
+              <BrainCircuit size={18} />
+              {generatingQuestions ? "..." : locale === "es" ? "Generar preguntas" : "Generate questions"}
+            </button>
+            {generationMessage && <p className="teacher-message">{generationMessage}</p>}
+          </section>
 
           <section className="simulator-control-group" aria-label={t.practiceMode}>
             <span>{t.practiceMode}</span>

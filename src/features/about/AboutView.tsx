@@ -1,4 +1,4 @@
-import { BrainCircuit, Database, Info, Network, Router, TerminalSquare } from "lucide-react";
+import { Router } from "lucide-react";
 import { Locale } from "@shared/types";
 export function AboutView({ locale, onBack }: { locale: Locale; onBack: () => void }) {
   const isEs = locale === "es";
@@ -40,10 +40,10 @@ export function AboutView({ locale, onBack }: { locale: Locale; onBack: () => vo
                 : "Interactive terminal simulation to solidify Cisco command syntax in 4 distinct learning modes."}
             </li>
             <li>
-              <strong>{isEs ? "Tutor de IA Local:" : "Local AI Tutor:"}</strong>{" "}
+              <strong>{isEs ? "Generación de Quizzes con IA:" : "AI Quiz Generation:"}</strong>{" "}
               {isEs 
-                ? "Soporte interactivo de tutoría mediante modelos de IA ejecutados localmente con Ollama (como Llama 3.2)."
-                : "Interactive tutoring support using AI models run locally with Ollama (such as Llama 3.2)."}
+                ? "Creación de nuevas preguntas desde la base de conocimiento usando Ollama o un generador local validado."
+                : "Creation of new questions from the knowledge base using Ollama or a validated local generator."}
             </li>
           </ul>
         </div>
